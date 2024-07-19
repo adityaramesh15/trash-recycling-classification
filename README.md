@@ -1,5 +1,4 @@
-# RRR
-ATLAS-ML RecycleBin Project
+# ATLAS-ML RecycleBin Project
 
 Make sure to use venv to enable access to all depenencies. 
 ```bash
