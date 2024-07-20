@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageStat
 
 '''
-This is a script used to generate percentage-based sample data to preserve relative counts. 
+This is a function used to generate percentage-based sample data to preserve relative counts. 
 Use a base path with flat directory (each folder is one feature, "featured-data" does this already).
 Everytime this script is run, write-path folder will get wiped and recreated with new data. 
 '''
