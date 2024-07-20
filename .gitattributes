@@ -1,1 +1,1 @@
-*.ipynb filter=ipynb
+*.ipynb linguist-detectable=false
