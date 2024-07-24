@@ -2,16 +2,19 @@ import os
 import random
 from collections import defaultdict
 import shutil
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageOps
 
 
 '''
 This is a function that serves as a 'run-all' script, to be called once prior to model train, validation, test split. 
-Every image in every category will be visited and a series of preprocessing functions will be run run on said image. 
+Every image in every category will be visited and a series of preprocessing functions will be run on said image. 
+Make note that for integration, every function will modify the image in-place using image.paste() from PIL
 '''
 def preprocess():
-    create_processed_data() #create processed-data
-    same_count() #convert that processed-data to have 440 per subcategory
+    create_processed_data()
+    same_count(440) 
+    
 
     # Goal is to loop through each image and call functions on each image
     for category in os.listdir('processed-data'):
@@ -22,13 +25,12 @@ def preprocess():
                 try:
                     with Image.open(os.path.join('processed-data', category, img_file)) as im:
                         im.verify()
-                        '''
-                        *****************************************************************
-                        ADD FUNCTIONS HERE TO BE CALLED ON EACH IMAGE IN SUCCESSIVE ORDER 
-                        *****************************************************************
-                        '''
+                        normalize_image(im)
+                        histogram_equalization(im)
+                       
                 except (IOError, OSError, Image.UnidentifiedImageError) as e:
-                    ...
+                    if(os.path.exists(img_file)):
+                        os.remove(img_file)
 
 
 
@@ -46,11 +48,10 @@ def create_processed_data():
 
 '''
 This is a function to assure all counts of images per category are the same, avoiding model bias. 
-Using EDA, the ideal amount is set to 440 for this dataset, which will be a hard-coded value. 
+Using EDA, the ideal amount is set to 440 for this dataset, but it can be changed depending on dataset. 
 '''
-def same_count():
+def same_count(target_count):
     image_data = defaultdict(list)
-    target_count = 440
 
     for category in os.listdir('cleaned-data'):
         category_path = os.path.join('cleaned-data', category)
@@ -69,4 +70,26 @@ def same_count():
 
         for img_path in sampled_images:
             shutil.copy(img_path, category_subdir)
+
+
+'''
+Normalizes the pixel values of the given PIL image to the range 0-1 for better model interpretability. 
+uint8 chosen as it is a standard for image procesing, and float32 as it has a good balance between space and detail. 
+Modifies the PIL Image in-place for further changes to be made by reference. 
+'''
+def normalize_image(image):
+    np_image = np.array(image).astype(np.float32)
+    np_image /= 255.0
+    image.paste(Image.fromarray((np_image * 255).astype(np.uint8)))
+
+'''
+Applies histogram equalization to the given PIL image to better enhance the contrast of the image.
+Modifies the PIL Image in-place for further changes to be made by reference. 
+'''
+def histogram_equalization(image):
+    grayscale_image = ImageOps.grayscale(image)
+    equalized_image = ImageOps.equalize(grayscale_image)
+    if image.mode == 'RGB':
+        equalized_image = ImageOps.colorize(equalized_image, black="black", white="white")
+    image.paste(equalized_image)
 
