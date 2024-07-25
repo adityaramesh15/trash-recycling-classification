@@ -1,3 +1,54 @@
+import cv2
+import numpy as np
+from IPython.display import display, Image
+import seam_carving
+import time
+from PIL import Image as PILImage
+from io import BytesIO
+import os
+
+
+"""
+This is the main function to use for preprocessing.
+takes in an image in PIL format and returns filtered image in PIL format
+"""
+def preprocess_img(myimage, target_width=255, target_height=255):
+
+	# Convert PIL to opencv
+	numpy_image=np.array(myimage)
+	myimage=cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
+	
+	# myimage = regular_padding(myimage)
+	# original_image = regular_padding(original_image)
+
+
+	myimage = resize_to_correct_size(myimage)
+	# original_image = myimage.copy()
+
+	# print(original_image.shape)
+
+	edges = find_laplacian_white_bg(myimage)
+
+	# reduces noise from edges image
+	edges = bgremove3(edges)
+
+
+	# binned = binning(myimage)
+	# blurred_and_binned = gaussianBlur(binned)
+	# print(binned.shape)
+	overlayed = overlay(edges, myimage)
+	
+
+	padded = regular_padding(overlayed, target_width=target_width, target_height=target_height)
+
+
+	# Convert from opencv to PIL
+	padded = cv2.cvtColor(padded, cv2.COLOR_BGR2RGB)
+	padded = PILImage.fromarray(padded)
+
+	return padded
+
+
 
 def show_img(img, width=None, saveAs="to_show.jpg"):
 	cv2.imwrite(saveAs,img)
@@ -150,30 +201,6 @@ def preprocess(img_path):
 	return preprocess_img(myimage)
 
 
-def preprocess_img(myimage, target_width=255, target_height=255):
-	# myimage = regular_padding(myimage)
-	# original_image = regular_padding(original_image)
-	myimage = resize_to_correct_size(myimage)
-	# original_image = myimage.copy()
-
-	# print(original_image.shape)
-
-	edges = find_laplacian_white_bg(myimage)
-
-	# reduces noise from edges image
-	edges = bgremove3(edges)
-
-
-	# binned = binning(myimage)
-	# blurred_and_binned = gaussianBlur(binned)
-	# print(binned.shape)
-	overlayed = overlay(edges, myimage)
-	
-
-	padded = regular_padding(overlayed, target_width=target_width, target_height=target_height)
-	return padded
-
-
 # img_path = r"../cleaned-data/plastic containers/plastic_containers 310.jpg"
 # result = preprocess(img_path)
 # show_img(result)
@@ -202,14 +229,7 @@ def bgremove3(myimage):
     return finalimage
 	
 
-import cv2
-import numpy as np
-from IPython.display import display, Image
-import seam_carving
-import time
-from PIL import Image as PILImage
-from io import BytesIO
-import os
+
 
 def run_realtime():
 	# Initialize webcam
@@ -228,7 +248,16 @@ def run_realtime():
 
 		# Apply a filter (grayscale)
 		# gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+		# opencv to PIL
+		frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+		frame = PILImage.fromarray(frame)
+
 		myimg = preprocess_img(frame, 550, 550)
+
+		# PIL to opencv
+		numpy_image=np.array(myimg)
+		myimg=cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
 
 
 		# Display the resulting frame
