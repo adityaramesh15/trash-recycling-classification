@@ -4,6 +4,7 @@ from collections import defaultdict
 import shutil
 import numpy as np
 from PIL import Image, ImageOps
+from filters import preprocess_img
 
 
 '''
@@ -11,27 +12,38 @@ This is a function that serves as a 'run-all' script, to be called once prior to
 Every image in every category will be visited and a series of preprocessing functions will be run on said image. 
 Make note that for integration, every function will modify the image in-place using image.paste() from PIL
 '''
-def preprocess():
-    create_processed_data()
-    same_count(440) 
+def preprocess(editExistingFolder=False):
+
+    category_size = 440
+    if not editExistingFolder:
+        create_processed_data()
+        same_count(category_size) 
     
 
     # Goal is to loop through each image and call functions on each image
     for category in os.listdir('processed-data'):
         category_path = os.path.join('processed-data', category)
+        print()
+        print(f"processing `{category}` category")
         
+        img_num = 1
         if os.path.isdir(category_path):
             for img_file in os.listdir(category_path):
+                print(f"img: {img_num}/{category_size}")
                 try:
-                    with Image.open(os.path.join('processed-data', category, img_file)) as im:
+                    img_path = os.path.join('processed-data', category, img_file)
+                    with Image.open(img_path) as im:
                         im.verify()
                         normalize_image(im)
                         histogram_equalization(im)
+                        # im = preprocess_img(im)
+
+                        im.save(img_path)
                        
                 except (IOError, OSError, Image.UnidentifiedImageError) as e:
                     if(os.path.exists(img_file)):
                         os.remove(img_file)
-
+                img_num += 1
 
 
 '''
@@ -93,3 +105,8 @@ def histogram_equalization(image):
         equalized_image = ImageOps.colorize(equalized_image, black="black", white="white")
     image.paste(equalized_image)
 
+if __name__ == "__main__":
+    print("running preprocess")
+    yn = input("edit existing folder? (y/n): ")
+    if yn != "y" and yn != "n": print("invalid input")
+    else: preprocess(editExistingFolder=(yn == "y")); print("done!")
