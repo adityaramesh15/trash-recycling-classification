@@ -3,3 +3,6 @@ numpy
 seaborn
 matplotlib
 pillow
+opencv-python
+ipython
+seam_carving

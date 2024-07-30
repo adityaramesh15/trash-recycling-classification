@@ -34,15 +34,18 @@ def preprocess(editExistingFolder=False):
                     img_path = os.path.join('processed-data', category, img_file)
                     with Image.open(img_path) as im:
                         im.verify()
-                        normalize_image(im)
-                        histogram_equalization(im)
+                    with Image.open(img_path) as im:
+                        im = normalize_image(im)
+                        im = histogram_equalization(im)
                         # im = preprocess_img(im)
 
                         im.save(img_path)
-                       
+                    
                 except (IOError, OSError, Image.UnidentifiedImageError) as e:
                     if(os.path.exists(img_file)):
                         os.remove(img_file)
+                except Exception as e:
+                    print(f'Exception is {e}')
                 img_num += 1
 
 
@@ -90,20 +93,25 @@ uint8 chosen as it is a standard for image procesing, and float32 as it has a go
 Modifies the PIL Image in-place for further changes to be made by reference. 
 '''
 def normalize_image(image):
-    np_image = np.array(image).astype(np.float32)
-    np_image /= 255.0
-    image.paste(Image.fromarray((np_image * 255).astype(np.uint8)))
+    image = image.convert('RGB')
+    np_image = np.array(image).astype(np.float32) / 255.0
+    normalized_image = Image.fromarray((np_image * 255).astype(np.uint8))
+    return normalized_image
 
 '''
 Applies histogram equalization to the given PIL image to better enhance the contrast of the image.
 Modifies the PIL Image in-place for further changes to be made by reference. 
 '''
 def histogram_equalization(image):
-    grayscale_image = ImageOps.grayscale(image)
-    equalized_image = ImageOps.equalize(grayscale_image)
     if image.mode == 'RGB':
-        equalized_image = ImageOps.colorize(equalized_image, black="black", white="white")
-    image.paste(equalized_image)
+        r, g, b = image.split()
+        r_eq = ImageOps.equalize(r)
+        g_eq = ImageOps.equalize(g)
+        b_eq = ImageOps.equalize(b)
+        equalized_image = Image.merge('RGB', (r_eq, g_eq, b_eq))
+    else:
+        equalized_image = ImageOps.equalize(image)
+    return equalized_image
 
 if __name__ == "__main__":
     print("running preprocess")
