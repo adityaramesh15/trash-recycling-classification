@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
 from IPython.display import display, Image
-import seam_carving
+# import seam_carving
 import time
 from PIL import Image as PILImage
 from io import BytesIO
 import os
+
 
 
 """
@@ -56,31 +57,31 @@ def show_img(img, width=None, saveAs="to_show.jpg"):
 		return Image(filename=saveAs, width=width)
 	return Image(filename=saveAs)
 
-def resize_image_seam_carving(src):
-	(h, w) = src.shape[:2]
-	if w > h:
-		target_width = 300
-		aspect_ratio = w / h
-		target_height = int(target_width / aspect_ratio)
-	else:
-		target_height = 300
-		aspect_ratio = h / w
-		target_width = int(target_height / aspect_ratio)
-	src = cv2.resize(src, (target_width, target_height))
-	start_time = time.time()
-	src_h, src_w, _ = src.shape
-	order = "width-first"
+# def resize_image_seam_carving(src):
+# 	(h, w) = src.shape[:2]
+# 	if w > h:
+# 		target_width = 300
+# 		aspect_ratio = w / h
+# 		target_height = int(target_width / aspect_ratio)
+# 	else:
+# 		target_height = 300
+# 		aspect_ratio = h / w
+# 		target_width = int(target_height / aspect_ratio)
+# 	src = cv2.resize(src, (target_width, target_height))
+# 	start_time = time.time()
+# 	src_h, src_w, _ = src.shape
+# 	order = "width-first"
 	
-	dst = seam_carving.resize(
-		src, (255, 255),
-		energy_mode='backward',   # Choose from {backward, forward}
-		order=order,  # Choose from {width-first, height-first}
-		keep_mask=None
-	)
-	end_time = time.time()
-	print(end_time-start_time)
-	# output = Image.fromarray(dst)
-	cv2.imwrite("output.png",dst)
+# 	dst = seam_carving.resize(
+# 		src, (255, 255),
+# 		energy_mode='backward',   # Choose from {backward, forward}
+# 		order=order,  # Choose from {width-first, height-first}
+# 		keep_mask=None
+# 	)
+# 	end_time = time.time()
+# 	print(end_time-start_time)
+# 	# output = Image.fromarray(dst)
+# 	cv2.imwrite("output.png",dst)
 
 # resize_image_seam_carving(img_path)
 # Image(filename="output.png", width=300)
